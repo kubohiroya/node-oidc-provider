@@ -7,6 +7,8 @@ const nock = require('nock');
 
 const bootstrap = require('../test_helper');
 
+const fail = () => { throw new Error('expected promise to be rejected'); };
+
 describe('Back-Channel Logout 1.0', () => {
   before(bootstrap(__dirname));
 
@@ -31,9 +33,30 @@ describe('Back-Channel Logout 1.0', () => {
           expect(decoded).to.have.property('sid', 'foo');
         })
         .post('/backchannel_logout')
-        .reply(204);
+        .reply(200);
 
       return client.backchannelLogout('subject', 'foo');
+    });
+
+    it('uses custom http options when provided', async function () {
+      const client = await this.provider.Client.find('client');
+
+      const pre = i(this.provider).configuration('httpOptions');
+      i(this.provider).configuration().httpOptions = (opts) => {
+        Object.assign(opts.body, { foo: 'bar' });
+        return opts;
+      };
+
+      nock('https://client.example.com/')
+        .filteringRequestBody((body) => {
+          expect(body).to.match(/^logout_token=(([\w-]+\.?){3})&foo=bar$/);
+        })
+        .post('/backchannel_logout')
+        .reply(200);
+
+      return client.backchannelLogout('subject', 'foo').then(() => {
+        i(this.provider).configuration().httpOptions = pre;
+      });
     });
 
     it('omits sid when its not required', async function () {
@@ -50,9 +73,21 @@ describe('Back-Channel Logout 1.0', () => {
           expect(decoded).not.to.have.property('sid');
         })
         .post('/backchannel_logout')
-        .reply(204);
+        .reply(200);
 
       return client.backchannelLogout('subject', 'foo');
+    });
+
+    it('handles non-200 OK responses', async function () {
+      const client = await this.provider.Client.find('no-sid');
+
+      nock('https://no-sid.example.com/')
+        .post('/backchannel_logout')
+        .reply(500);
+
+      return client.backchannelLogout('subject', 'foo').then(fail, (err) => {
+        expect(err.message).to.eql('expected 200 OK from https://no-sid.example.com/backchannel_logout, got: 500 Internal Server Error');
+      });
     });
   });
 
@@ -154,7 +189,7 @@ describe('Back-Channel Logout 1.0', () => {
 
       nock('https://client.example.com/')
         .post('/backchannel_logout')
-        .reply(204);
+        .reply(200);
 
       const successSpy = sinon.spy();
       this.provider.once('backchannel.success', successSpy);

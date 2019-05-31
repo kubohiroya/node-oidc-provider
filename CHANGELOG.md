@@ -2,6 +2,81 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [6.0.0-alpha.7](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.6...v6.0.0-alpha.7) (2019-05-29)
+
+
+### Bug Fixes
+
+* add scope to implicit responses when different from request ([71b2e7e](https://github.com/panva/node-oidc-provider/commit/71b2e7e))
+* expose correct discovery metadata jwt introspection signing algs ([cf4e442](https://github.com/panva/node-oidc-provider/commit/cf4e442)), closes [#475](https://github.com/panva/node-oidc-provider/issues/475)
+* hide disabled features from discovery ([967c829](https://github.com/panva/node-oidc-provider/commit/967c829))
+* jwt client assertion audience now also accepts issuer and token url ([38706e7](https://github.com/panva/node-oidc-provider/commit/38706e7))
+* use fixed scope to claim mapping over dynamic ones ([03a6130](https://github.com/panva/node-oidc-provider/commit/03a6130)), closes [#466](https://github.com/panva/node-oidc-provider/issues/466)
+
+
+
+# [6.0.0-alpha.6](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.5...v6.0.0-alpha.6) (2019-05-21)
+
+
+### Bug Fixes
+
+* check sameSite cookie option for none case-insensitive ([523d1b2](https://github.com/panva/node-oidc-provider/commit/523d1b2))
+* handle client jwks x5c when kty is OKP, use client jwks key_ops ([f052f6b](https://github.com/panva/node-oidc-provider/commit/f052f6b))
+
+
+### Features
+
+* add per-request http options helper function configuration ([4aee414](https://github.com/panva/node-oidc-provider/commit/4aee414))
+* discovery must now always be enabled ([5c3c0c7](https://github.com/panva/node-oidc-provider/commit/5c3c0c7))
+
+
+### BREAKING CHANGES
+
+* removed features.discovery and it is now always-on, no
+point in disabling discovery, ever.
+* logoutPendingSource no longer receives a `timeout`
+argument
+* `provider.defaultHttpOptions` setter was removed, use
+the new `httpOptions` configuration helper function instead
+* provider now asserts that client's
+`backchannel_logout_uri` returns a 200 OK response as per specification.
+
+
+
+# [6.0.0-alpha.5](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.4...v6.0.0-alpha.5) (2019-05-17)
+
+
+### Bug Fixes
+
+* check id_token_hint even if the interaction check is disabled ([7528220](https://github.com/panva/node-oidc-provider/commit/7528220))
+* check PKCE verifier and challenge ABNF, remove it from device flow ([849b964](https://github.com/panva/node-oidc-provider/commit/849b964))
+* enable Secure cookies with the default settings if on secure req ([a056bfd](https://github.com/panva/node-oidc-provider/commit/a056bfd))
+* short cookie options dont affect the resume cookie path scope ([4c7e877](https://github.com/panva/node-oidc-provider/commit/4c7e877))
+
+
+### Code Refactoring
+
+* rename idToken.sign to idToken.issue ([1c6d556](https://github.com/panva/node-oidc-provider/commit/1c6d556))
+
+
+### Features
+
+* allow for client default metadata to be changed ([8f20a69](https://github.com/panva/node-oidc-provider/commit/8f20a69))
+* allow non-conform instances ([f772f97](https://github.com/panva/node-oidc-provider/commit/f772f97))
+* set default sameSite cookie values, short: lax, long: none ([cfb1a70](https://github.com/panva/node-oidc-provider/commit/cfb1a70))
+
+
+### BREAKING CHANGES
+
+* provider.IdToken.prototype.sign is renamed to
+provider.IdToken.prototype.issue
+* PKCE code_challenge and code_verifier is now checked
+to be 43-128 characters long and conforms to the allowed character set
+of [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~". PKCE is now also
+ignored for the Device Code authorization request and token exchange.
+
+
+
 # [6.0.0-alpha.4](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.3...v6.0.0-alpha.4) (2019-05-09)
 
 

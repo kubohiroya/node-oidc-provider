@@ -325,7 +325,7 @@ describe('Client metadata validation', () => {
       grant_types: ['implicit', 'authorization_code'],
       response_types: ['code id_token'],
     });
-    allows(this.title, ['http://localhost'], undefined, {
+    allows(this.title, ['http://localhost'], {
       application_type: 'web',
     });
     rejects(this.title, ['http://some'], undefined, {
@@ -893,7 +893,7 @@ describe('Client metadata validation', () => {
     rejects(this.title, 1, 'jwks must be a JWK Set');
     rejects(this.title, 0, 'jwks must be a JWK Set');
     rejects(this.title, true, 'jwks must be a JWK Set');
-    rejects(this.title, { keys: [privateKey] }, 'jwks must not contain private keys');
+    rejects(this.title, { keys: [privateKey] }, 'invalid jwks (jwks must not contain private keys)');
     allows(this.title, { keys: [] }, 'jwks.keys must not be empty');
     ['introspection', 'revocation', 'token'].forEach((endpoint) => {
       rejects(this.title, undefined, 'jwks or jwks_uri is mandatory for this client', {
@@ -909,15 +909,15 @@ describe('Client metadata validation', () => {
 
     const invalidx5c = cloneDeep(mtlsKeys);
     invalidx5c.keys[0].x5c = true;
-    rejects(this.title, invalidx5c, 'when provided, JWK x5c must be non-empty an array');
+    rejects(this.title, invalidx5c, 'invalid jwks (`x5c` must be an array of one or more PKIX certificates when provided)');
 
     const emptyx5c = cloneDeep(mtlsKeys);
     emptyx5c.keys[0].x5c = [];
-    rejects(this.title, emptyx5c, 'when provided, JWK x5c must be non-empty an array');
+    rejects(this.title, emptyx5c, 'invalid jwks (`x5c` must be an array of one or more PKIX certificates when provided)');
 
     const invalidCert = cloneDeep(mtlsKeys);
     invalidCert.keys[0].x5c = ['foobar'];
-    rejects(this.title, invalidCert, 'invalid x5c provided');
+    rejects(this.title, invalidCert, 'invalid jwks (`x5c` member at index 0 is not a valid base64-encoded DER PKIX certificate)');
 
     [
       'id_token_encrypted_response_alg',
@@ -1029,4 +1029,28 @@ describe('Client metadata validation', () => {
     expect(client.responseTypes).to.be.empty;
     expect(client.redirectUris).to.be.empty;
   }));
+
+  context('clientDefaults configuration option allows for default client metadata to be changed', () => {
+    defaultsTo('token_endpoint_auth_method', 'client_secret_post', undefined, {
+      clientDefaults: {
+        token_endpoint_auth_method: 'client_secret_post',
+      },
+    });
+    defaultsTo('id_token_signed_response_alg', 'PS256', undefined, {
+      clientDefaults: {
+        id_token_signed_response_alg: 'PS256',
+      },
+    });
+    defaultsTo('grant_types', ['authorization_code', 'refresh_token'], undefined, {
+      clientDefaults: {
+        grant_types: ['authorization_code', 'refresh_token'],
+      },
+    });
+    defaultsTo('response_types', ['code id_token'], undefined, {
+      clientDefaults: {
+        response_types: ['code id_token'],
+        grant_types: ['authorization_code', 'implicit'],
+      },
+    });
+  });
 });

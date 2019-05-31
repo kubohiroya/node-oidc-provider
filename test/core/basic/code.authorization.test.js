@@ -187,7 +187,7 @@ describe('BASIC code', () => {
           client_id: 'client-native',
           redirect_uri: 'com.example.app:/cb',
           scope,
-          code_challenge: 'foo',
+          code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
           code_challenge_method: 'S256',
         });
 
@@ -557,7 +557,7 @@ describe('BASIC code', () => {
           .expect(auth.validateState)
           .expect(auth.validateClientLocation)
           .expect(auth.validateError('invalid_request'))
-          .expect(auth.validateErrorDescription('invalid prompt value provided'));
+          .expect(auth.validateErrorDescription('unsupported prompt value requested'));
       });
 
       it('supported but not requestable prompt', function () {
@@ -578,7 +578,7 @@ describe('BASIC code', () => {
           .expect(auth.validateState)
           .expect(auth.validateClientLocation)
           .expect(auth.validateError('invalid_request'))
-          .expect(auth.validateErrorDescription('invalid prompt value provided'));
+          .expect(auth.validateErrorDescription('unsupported prompt value requested'));
       });
 
       it('bad prompt combination', function () {

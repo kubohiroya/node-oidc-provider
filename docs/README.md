@@ -26,8 +26,6 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
 - [Accounts](#accounts)
 - [User flows](#user-flows)
 - [Custom Grant Types](#custom-grant-types)
-- [HTTP Request Library / Proxy settings](#http-request-library--proxy-settings)
-- [Changing HTTP Request Defaults](#changing-http-request-defaults)
 - [Registering module middlewares (helmet, ip-filters, rate-limiters, etc)](#registering-module-middlewares-helmet-ip-filters-rate-limiters-etc)
 - [Pre- and post-middlewares](#pre--and-post-middlewares)
 - [Mounting oidc-provider](#mounting-oidc-provider)
@@ -46,7 +44,6 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
     - [clientCredentials](#featuresclientcredentials)
     - [devInteractions](#featuresdevinteractions)
     - [deviceFlow](#featuresdeviceflow)
-    - [discovery](#featuresdiscovery)
     - [encryption](#featuresencryption)
     - [frontchannelLogout](#featuresfrontchannellogout)
     - [introspection](#featuresintrospection)
@@ -64,6 +61,7 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
   - [audiences](#audiences)
   - [claims](#claims)
   - [clientBasedCORS](#clientbasedcors)
+  - [clientDefaults](#clientdefaults)
   - [clockTolerance](#clocktolerance)
   - [conformIdTokenClaims](#conformidtokenclaims)
   - [cookies](#cookies)
@@ -73,6 +71,7 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
   - [extraClientMetadata](#extraclientmetadata)
   - [extraParams](#extraparams)
   - [formats](#formats)
+  - [httpOptions](#httpoptions)
   - [interactions](#interactions)
   - [interactionUrl](#interactionurl)
   - [introspectionEndpointAuthMethods](#introspectionendpointauthmethods)
@@ -181,7 +180,7 @@ interaction session object.
 
 The Provider instance comes with helpers that aid with getting interaction details as well as
 packing the results. See them used in the [step-by-step](https://github.com/panva/node-oidc-provider-example)
-or [in-repo](/example/index.js) examples.
+or [in-repo](/example) examples.
 
 
 **`#provider.interactionDetails(req)`**
@@ -330,44 +329,6 @@ async function tokenExchangeHandler(ctx, next) {
 }
 
 provider.registerGrantType(grantType, tokenExchangeHandler, parameters, allowedDuplicateParameters);
-```
-
-
-## HTTP Request Library / Proxy settings
-oidc-provider uses the [got][got-library] module. Because of its lightweight nature the provider
-will not use environment-defined http(s) proxies. In order to have them used you'll need to follow
-got's [README](https://github.com/sindresorhus/got#proxies) and use e.g.
-[`global-tunnel`](https://github.com/np-maintain/global-tunnel)
-
-
-## Changing HTTP Request Defaults
-On four occasions the OIDC Provider needs to venture out to the world wide webs to fetch or post
-to external resources, those are
-
-- fetching an authorization request by request_uri reference
-- fetching and refreshing client's referenced asymmetric keys (jwks_uri client metadata)
-- validating pairwise client's relation to a sector (sector_identifier_uri client metadata)
-- posting to client's backchannel_logout_uri
-
-oidc-provider uses these default options for http requests
-```js
-const DEFAULT_HTTP_OPTIONS = {
-  followRedirect: false,
-  headers: { 'User-Agent': `${pkg.name}/${pkg.version} (${this.issuer})` },
-  retry: 0,
-  timeout: 2500,
-};
-```
-
-Setting `defaultHttpOptions` on `Provider` instance merges your passed options with these defaults,
-for example you can add your own headers, change the user-agent used or change the timeout setting
-```js
-provider.defaultHttpOptions = { timeout: 2500, headers: { 'X-Your-Header': '<whatever>' } };
-```
-
-Confirm your httpOptions by
-```js
-console.log('httpOptions %j', provider.defaultHttpOptions);
 ```
 
 
@@ -692,7 +653,7 @@ new Provider('http://localhost:3000', {
 // NOTICE: The following draft features are enabled and their implemented version not acknowledged
 // NOTICE:   - OAuth 2.0 Web Message Response Mode - draft 00 (This is an Individual draft. URL: https://tools.ietf.org/html/draft-sakimura-oauth-wmrm-00)
 // NOTICE: Breaking changes between draft version updates may occur and these will be published as MINOR semver oidc-provider updates.
-// NOTICE: You may disable this notice and these potentially breaking updates by acknowledging the current draft version. See https://github.com/panva/node-oidc-provider/tree/master/docs#features
+// NOTICE: You may disable this notice and these potentially breaking updates by acknowledging the current draft version. See https://github.com/panva/node-oidc-provider/tree/master/docs/README.md#features
 new Provider('http://localhost:3000', {
   features: {
     webMessageResponseMode: {
@@ -761,7 +722,7 @@ proxy_set_header x-ssl-client-cert $ssl_client_cert;
 ```
 ```apache
 # Apache
-RequestHeader set x-ssl-client-cert  ""
+RequestHeader set x-ssl-client-cert ""
 RequestHeader set x-ssl-client-cert "%{SSL_CLIENT_CERT}s"
 ```
 You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-12](https://tools.ietf.org/html/draft-ietf-oauth-mtls-12) specified `mtls_endpoint_aliases`.
@@ -1023,20 +984,6 @@ html>`;
 
 </details>
 
-### features.discovery
-
-[Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)  
-
-Exposes `/.well-known/openid-configuration` endpoint with your provider's actual configuration, i.e. Available claims, features and so on.  
-
-
-_**default value**_:
-```js
-{
-  enabled: true
-}
-```
-
 ### features.encryption
 
 Enables encryption features such as receiving encrypted UserInfo responses, encrypted ID Tokens and allow receiving encrypted Request Objects.  
@@ -1075,7 +1022,7 @@ HTML source rendered when there are pending front-channel logout iframes to be c
 
 _**default value**_:
 ```js
-async logoutPendingSource(ctx, frames, postLogoutRedirectUri, timeout) {
+async logoutPendingSource(ctx, frames, postLogoutRedirectUri) {
   ctx.body = `<!DOCTYPE html>
 ead>
 <title>Logout</title>
@@ -1097,7 +1044,7 @@ ${frames.join('')}
   Array.prototype.slice.call(document.querySelectorAll('iframe')).forEach(function (element) {
     element.onload = frameOnLoad;
   });
-  setTimeout(redirect, ${timeout});
+  setTimeout(redirect, 2500);
 </script>
 <noscript>
   Your browser does not support JavaScript or you've disabled it.<br/>
@@ -1627,6 +1574,55 @@ clientBasedCORS(ctx, origin, client) {
 }
 ```
 
+### clientDefaults
+
+Default client metadata to be assigned when unspecified by the client metadata, e.g. During Dynamic Client Registration or for statically configured clients. The default value does not represent all default values, but merely copies its subset. You can provide any used client metadata property in this object.   
+  
+
+
+_**default value**_:
+```js
+{
+  grant_types: [
+    'authorization_code'
+  ],
+  id_token_signed_response_alg: 'RS256',
+  response_types: [
+    'code'
+  ],
+  token_endpoint_auth_method: 'client_secret_basic'
+}
+```
+<details>
+  <summary>(Click to expand) Changing the default client token_endpoint_auth_method</summary>
+  <br>
+
+
+To change the default client token_endpoint_auth_method configure `clientDefaults` to be an object like so:
+  
+
+```js
+{
+  token_endpoint_auth_method: 'client_secret_post'
+}
+```
+</details>
+<details>
+  <summary>(Click to expand) Changing the default client response type to `code id_token`</summary>
+  <br>
+
+
+To change the default client response_types configure `clientDefaults` to be an object like so:
+  
+
+```js
+{
+  response_types: ['code id_token'],
+  grant_types: ['authorization_code', 'implicit'],
+}
+```
+</details>
+
 ### clockTolerance
 
 A `Number` value (in seconds) describing the allowed system clock skew for validating client-provided JWTs, e.g. Request objects and otherwise comparing timestamps  
@@ -1762,7 +1758,7 @@ Configure `dynamicScopes` like so:
 
 ### expiresWithSession
 
-Helper used by the OP to decide whether the given authorization code/ device code or implicit returned access token be bound to the user session. This will be applied to  all tokens issued from the authorization / device code in the future. When tokens are session-bound the session will be loaded by its `uid` every time the token is encountered. Session bound tokens will effectively get revoked if the end-user logs out.  
+Helper used by the OP to decide whether the given authorization code/ device code or implicit returned access token be bound to the user session. This will be applied to all tokens issued from the authorization / device code in the future. When tokens are session-bound the session will be loaded by its `uid` every time the token is encountered. Session bound tokens will effectively get revoked if the end-user logs out.  
 
 
 _**default value**_:
@@ -1933,6 +1929,41 @@ async extraJwtAccessTokenClaims(ctx, token) {
     }
   }
 }
+```
+</details>
+
+### httpOptions
+
+Helper called whenever the provider calls an external HTTP(S) resource. Use to change the [got](https://github.com/sindresorhus/got/tree/v9.6.0) library's request options as they happen. This can be used to e.g. Change the request timeout option or to configure the global agent to use HTTP_PROXY and HTTPS_PROXY environment variables.   
+  
+
+
+_**default value**_:
+```js
+httpOptions(options) {
+  options.followRedirect = false;
+  options.headers['User-Agent'] = 'oidc-provider/${VERSION} (${ISSUER_IDENTIFIER})';
+  options.retry = 0;
+  options.throwHttpErrors = false;
+  options.timeout = 2500;
+  return options;
+}
+```
+<details>
+  <summary>(Click to expand) To change the request's timeout</summary>
+  <br>
+
+
+To change all request's timeout configure the httpOptions as a function like so:
+  
+
+```js
+ {
+   httpOptions(options) {
+     options.timeout = 5000;
+     return options;
+   }
+ }
 ```
 </details>
 
@@ -2532,7 +2563,7 @@ _**default value**_:
 
 ### subjectTypes
 
-Array of the Subject Identifier types that this OP supports. Valid types are
+Array of the Subject Identifier types that this OP supports. When only `pairwise` is supported it becomes the default `subject_type` client metadata value. Valid types are
  - `public`
  - `pairwise`  
 
@@ -2589,11 +2620,11 @@ proxy_set_header x-ssl-client-s-dn $ssl_client_s_dn;
 ```
 ```apache
 # Apache
-RequestHeader set x-ssl-client-cert  ""
+RequestHeader set x-ssl-client-cert ""
 RequestHeader set x-ssl-client-cert "%{SSL_CLIENT_CERT}s"
-RequestHeader set x-ssl-client-verify  ""
+RequestHeader set x-ssl-client-verify ""
 RequestHeader set x-ssl-client-verify "%{SSL_CLIENT_VERIFY}s"
-RequestHeader set x-ssl-client-s-dn  ""
+RequestHeader set x-ssl-client-s-dn ""
 RequestHeader set x-ssl-client-s-dn "%{SSL_CLIENT_S_DN}s"
 ```
 You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-12](https://tools.ietf.org/html/draft-ietf-oauth-mtls-12) specified `mtls_endpoint_aliases`.
