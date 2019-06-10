@@ -696,7 +696,7 @@ _**default value**_:
 
 ### features.certificateBoundAccessTokens
 
-[draft-ietf-oauth-mtls-12](https://tools.ietf.org/html/draft-ietf-oauth-mtls-12) - OAuth 2.0 Mutual TLS Client Authentication and Certificate Bound Access Tokens  
+[draft-ietf-oauth-mtls-14](https://tools.ietf.org/html/draft-ietf-oauth-mtls-14) - OAuth 2.0 Mutual TLS Client Authentication and Certificate Bound Access Tokens  
 
 Enables Certificate Bound Access Tokens. Clients may be registered with `tls_client_certificate_bound_access_tokens` to indicate intention to receive mutual TLS client certificate bound access tokens.   
   
@@ -725,7 +725,7 @@ proxy_set_header x-ssl-client-cert $ssl_client_cert;
 RequestHeader set x-ssl-client-cert ""
 RequestHeader set x-ssl-client-cert "%{SSL_CLIENT_CERT}s"
 ```
-You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-12](https://tools.ietf.org/html/draft-ietf-oauth-mtls-12) specified `mtls_endpoint_aliases`.
+You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-14](https://tools.ietf.org/html/draft-ietf-oauth-mtls-14) specified `mtls_endpoint_aliases`.
   
 
 ```js
@@ -1074,7 +1074,7 @@ _**default value**_:
 
 ### features.jwtIntrospection
 
-[draft-ietf-oauth-jwt-introspection-response-02](https://tools.ietf.org/html/draft-ietf-oauth-jwt-introspection-response-02) - JWT Response for OAuth Token Introspection  
+[draft-ietf-oauth-jwt-introspection-response-03](https://tools.ietf.org/html/draft-ietf-oauth-jwt-introspection-response-03) - JWT Response for OAuth Token Introspection  
 
 Enables JWT responses for Token Introspection features   
   
@@ -2320,16 +2320,19 @@ async issueRefreshToken(ctx, client, code) {
 }
 ```
 <details>
-  <summary>(Click to expand) To always issue a refresh token if a client has the grant whitelisted</summary>
+  <summary>(Click to expand) To always issue a refresh tokens ...</summary>
   <br>
 
 
-Configure `issueRefreshToken` like so
+... If a client has the grant whitelisted and scope includes offline_access or the client is a public web client doing code flow. Configure `issueRefreshToken` like so
   
 
 ```js
 async issueRefreshToken(ctx, client, code) {
-  return client.grantTypes.includes('refresh_token');
+  if (!client.grantTypes.includes('refresh_token')) {
+    return false;
+  }
+  return code.scopes.has('offline_access') || (client.applicationType === 'web' && client.tokenEndpointAuthMethod === 'none');
 }
 ```
 </details>
@@ -2502,29 +2505,31 @@ _**default value**_:
 Configures if and how the OP rotates refresh tokens after they are used. Supported values are
  - `false` refresh tokens are not rotated and their initial expiration date is final
  - `true` refresh tokens are rotated when used, current token is marked as consumed and new one is issued with new TTL, when a consumed refresh token is encountered an error is returned instead and the whole token chain (grant) is revoked
- - function returning true/false, true when rotation should occur, false when it shouldn't  
+ - `function` returning true/false, true when rotation should occur, false when it shouldn't   
+ <br/><br/>   
+ The default configuration value puts forth a sensible refresh token rotation policy
+ - only allows refresh tokens to be rotated (have their TTL prolonged by issuing a new one) for one year
+ - otherwise always rotate public client tokens
+ - otherwise only rotate tokens if they're being used close to their expiration (>= 70% TTL passed)  
 
 
 _**default value**_:
 ```js
-true
-```
-<details>
-  <summary>(Click to expand) function use
-</summary>
-  <br>
-
-```js
-async function rotateRefreshToken(ctx) {
-  // e.g.
-  // return refreshTokenCloseToExpiration(ctx.oidc.entities.RefreshToken);
-  // or
-  // return refreshTokenRecentlyRotated(ctx.oidc.entities.RefreshToken);
-  // or
-  // return customClientBasedPolicy(ctx.oidc.entities.Client);
+rotateRefreshToken(ctx) {
+  const { RefreshToken: refreshToken, Client: client } = ctx.oidc.entities;
+  // cap the maximum amount of time a refresh token can be
+  // rotated for up to 1 year, afterwards its TTL is final
+  if (refreshToken.totalLifetime() >= 365.25 * 24 * 60 * 60) {
+    return false;
+  }
+  // rotate public client refresh tokens
+  if (client.tokenEndpointAuthMethod === 'none') {
+    return true;
+  }
+  // rotate if the token is nearing expiration (it's beyond 70% of its lifetime)
+  return refreshToken.ttlPercentagePassed() >= 70;
 }
 ```
-</details>
 
 ### routes
 
@@ -2627,7 +2632,7 @@ RequestHeader set x-ssl-client-verify "%{SSL_CLIENT_VERIFY}s"
 RequestHeader set x-ssl-client-s-dn ""
 RequestHeader set x-ssl-client-s-dn "%{SSL_CLIENT_S_DN}s"
 ```
-You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-12](https://tools.ietf.org/html/draft-ietf-oauth-mtls-12) specified `mtls_endpoint_aliases`.
+You should also consider hosting the endpoints supporting client authentication, on a separate host name or port in order to prevent unintended impact on the TLS behaviour of your other endpoints, e.g. Discovery or the authorization endpoint, by updating the discovery response to add [draft-ietf-oauth-mtls-14](https://tools.ietf.org/html/draft-ietf-oauth-mtls-14) specified `mtls_endpoint_aliases`.
   
 
 ```js
@@ -2674,6 +2679,7 @@ When doing that be sure to remove the client provided headers of the same name o
 Expirations (in seconds, or dynamically returned value) for all token types   
   
 
+_**recommendation**_: Do not set token TTLs longer then they absolutely have to be, the shorter the TTL, the better. Rather than setting crazy high Refresh Token TTL look into `rotateRefreshToken` configuration option which is set up in way that when refresh tokens are regularly used they will have their TTL refreshed (via rotation). This is inline with the [OAuth 2.0 Security Best Current Practice](https://tools.ietf.org/html/draft-ietf-oauth-security-topics-12)  
 
 _**default value**_:
 ```js
