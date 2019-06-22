@@ -17,7 +17,7 @@ const route = '/auth';
     before(bootstrap(__dirname));
 
     before(function () {
-      this.keystore = jose.JWKS.KeyStore.fromJWKS(privKey);
+      this.keystore = jose.JWKS.asKeyStore(privKey);
     });
     before(function () { return this.login(); });
 
@@ -214,7 +214,7 @@ const route = '/auth';
           response_type: 'id_token',
           nonce: 'foobar',
           redirect_uri: 'https://client.example.com/cb',
-        }, null, 'none', { issuer: 'client', audience: this.provider.issuer }).then(signed => JWT.encrypt(signed, client.keystore.get({ alg: 'A128KW' }), { enc: 'A128CBC-HS256', alg: 'A128KW' })).then(encrypted => this.wrap({
+        }, null, 'none', { issuer: 'clientSymmetric', audience: this.provider.issuer }).then(signed => JWT.encrypt(signed, client.keystore.get({ alg: 'A128KW' }), { enc: 'A128CBC-HS256', alg: 'A128KW' })).then(encrypted => this.wrap({
           route,
           verb,
           auth: {

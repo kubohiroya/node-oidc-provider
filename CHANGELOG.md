@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [6.0.0-alpha.10](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.9...v6.0.0-alpha.10) (2019-06-21)
+
+
+### Bug Fixes
+
+* break endless login loop with too short max_age values ([66c7968](https://github.com/panva/node-oidc-provider/commit/66c7968))
+* clientDefaults is now used in resolving defaults of some edge props ([e7bcfd2](https://github.com/panva/node-oidc-provider/commit/e7bcfd2))
+* ensure runtime @panva/jose dependency ^1.3.0 ([8d633cb](https://github.com/panva/node-oidc-provider/commit/8d633cb))
+* request object processing order related and general fixes ([9fd3fba](https://github.com/panva/node-oidc-provider/commit/9fd3fba))
+
+
+
+# [6.0.0-alpha.9](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.8...v6.0.0-alpha.9) (2019-06-18)
+
+
+### Bug Fixes
+
+* also reject client jwks/jwks_uri symmetric keys ([df18f62](https://github.com/panva/node-oidc-provider/commit/df18f62)), closes [#481](https://github.com/panva/node-oidc-provider/issues/481)
+* avoid sending "samesite=none" to webkit browsers due to their bug ([9c6e05b](https://github.com/panva/node-oidc-provider/commit/9c6e05b))
+* correctly use the secret value, not its SHA digest, for PBES2-* ([43256ba](https://github.com/panva/node-oidc-provider/commit/43256ba))
+* handle invalid interaction policies with access_denied ([1b6104c](https://github.com/panva/node-oidc-provider/commit/1b6104c))
+
+
+### Features
+
+* always return scope with token implicit response ([ea7b394](https://github.com/panva/node-oidc-provider/commit/ea7b394))
+
+
+### BREAKING CHANGES
+
+* PBES2-* Content Encryption Key encryption now correctly
+uses the  `client_secret` value rather than its SHA digest.
+* when neither interactions nor custom middlewares result
+in the authorization chain having an account identifier the server will
+now resolve the request with access_denied error.
+* when neither interactions nor custom middlewares result
+in the authorization chain having resolved an accepted scope the server
+will now resolve the request with access_denied error.
+
+
+
 # [6.0.0-alpha.8](https://github.com/panva/node-oidc-provider/compare/v6.0.0-alpha.7...v6.0.0-alpha.8) (2019-06-06)
 
 
@@ -311,7 +352,6 @@ id_token_hint. See https://bitbucket.org/openid/connect/issues/1032
   [OIDC Core 1.0 Errata 2 changeset](https://bitbucket.org/openid/connect/commits/f91efe0f583d9e8a96a7717f454e1822041feb14)
 - Client will no longer be looked up twice during failed authorization due to client not being found
 - `max_age` parameter is now validated to be a non-negative safe integer
-- PBES2 symmetric encryption now correctly uses the `client_secret` value rather then its SHA digest
 - client secrets no longer need to have minimal length to support HS signing
 - established session acr/amr is now available for any authorization request, not just the one it
   was established with
