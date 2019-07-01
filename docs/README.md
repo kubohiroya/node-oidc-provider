@@ -25,30 +25,31 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
 - [Default configuration values](#default-configuration-values)
 - [Accounts](#accounts)
 - [User flows](#user-flows)
-- [Custom Grant Types](#custom-grant-types)
+- [Custom Grant Types ❗](#custom-grant-types)
 - [Registering module middlewares (helmet, ip-filters, rate-limiters, etc)](#registering-module-middlewares-helmet-ip-filters-rate-limiters-etc)
-- [Pre- and post-middlewares](#pre--and-post-middlewares)
+- [Pre- and post-middlewares ❗](#pre--and-post-middlewares)
 - [Mounting oidc-provider](#mounting-oidc-provider)
   - [to an express application](#to-an-express-application)
   - [to a koa application](#to-a-koa-application)
-- [Trusting TLS offloading proxies](#trusting-tls-offloading-proxies)
+- [Trusting TLS offloading proxies ❗](#trusting-tls-offloading-proxies)
 - [Configuration options](#configuration-options)
-  - [adapter](#adapter)
-  - [clients](#clients)
-  - [findAccount](#findaccount)
-  - [jwks](#jwks)
-  - [features](#features)
+  - [adapter ❗](#adapter)
+  - [clients ❗](#clients)
+  - [findAccount ❗](#findaccount)
+  - [jwks ❗](#jwks)
+  - [features ❗](#features)
     - [backchannelLogout](#featuresbackchannellogout)
     - [certificateBoundAccessTokens](#featurescertificateboundaccesstokens)
     - [claimsParameter](#featuresclaimsparameter)
     - [clientCredentials](#featuresclientcredentials)
-    - [devInteractions](#featuresdevinteractions)
     - [deviceFlow](#featuresdeviceflow)
+    - [devInteractions](#featuresdevinteractions)
     - [encryption](#featuresencryption)
     - [frontchannelLogout](#featuresfrontchannellogout)
     - [introspection](#featuresintrospection)
     - [jwtIntrospection](#featuresjwtintrospection)
     - [jwtResponseModes](#featuresjwtresponsemodes)
+    - [jwtUserinfo](#featuresjwtuserinfo)
     - [registration](#featuresregistration)
     - [registrationManagement](#featuresregistrationmanagement)
     - [request](#featuresrequest)
@@ -56,14 +57,15 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
     - [resourceIndicators](#featuresresourceindicators)
     - [revocation](#featuresrevocation)
     - [sessionManagement](#featuressessionmanagement)
+    - [userinfo](#featuresuserinfo)
     - [webMessageResponseMode](#featureswebmessageresponsemode)
   - [acrValues](#acrvalues)
   - [audiences](#audiences)
-  - [claims](#claims)
+  - [claims ❗](#claims)
   - [clientBasedCORS](#clientbasedcors)
   - [clientDefaults](#clientdefaults)
   - [clockTolerance](#clocktolerance)
-  - [conformIdTokenClaims](#conformidtokenclaims)
+  - [conformIdTokenClaims ❗](#conformidtokenclaims)
   - [cookies](#cookies)
   - [discovery](#discovery)
   - [dynamicScopes](#dynamicscopes)
@@ -72,9 +74,7 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
   - [extraParams](#extraparams)
   - [formats](#formats)
   - [httpOptions](#httpoptions)
-  - [interactions](#interactions)
-  - [interactionUrl](#interactionurl)
-  - [introspectionEndpointAuthMethods](#introspectionendpointauthmethods)
+  - [interactions ❗](#interactions)
   - [issueRefreshToken](#issuerefreshtoken)
   - [logoutSource](#logoutsource)
   - [pairwiseIdentifier](#pairwiseidentifier)
@@ -82,13 +82,12 @@ If you or your business use oidc-provider, please consider becoming a [Patron][s
   - [postLogoutSuccessSource](#postlogoutsuccesssource)
   - [renderError](#rendererror)
   - [responseTypes](#responsetypes)
-  - [revocationEndpointAuthMethods](#revocationendpointauthmethods)
   - [rotateRefreshToken](#rotaterefreshtoken)
   - [routes](#routes)
   - [scopes](#scopes)
   - [subjectTypes](#subjecttypes)
   - [tokenEndpointAuthMethods](#tokenendpointauthmethods)
-  - [ttl](#ttl)
+  - [ttl ❗](#ttl)
   - [whitelistedJWA](#whitelistedjwa)
 
 
@@ -366,7 +365,7 @@ provider.use(async (ctx, next) => {
    * checking `ctx.oidc.route`, the unique route names used are
    *
    * `authorization`
-   * `certificates`
+   * `jwks`
    * `check_session_origin`
    * `check_session`
    * `client_delete`
@@ -561,28 +560,6 @@ _**recommendation**_: **Provider key rotation** - The following action order is 
  2. reload all your processes
  3. move your new key to the very front of the "keys" array in your JWKS, this means the key will be used for signing after reload
  4. reload all your processes  
-
-_**default value**_:
-```js
-{
-  keys: [
-    {
-      alg: 'RS256',
-      d: 'VEZOsY07JTFzGTqv6cC2Y32vsfChind2I_TTuvV225_-0zrSej3XLRg8iE_u0-3GSgiGi4WImmTwmEgLo4Qp3uEcxCYbt4NMJC7fwT2i3dfRZjtZ4yJwFl0SIj8TgfQ8ptwZbFZUlcHGXZIr4nL8GXyQT0CK8wy4COfmymHrrUoyfZA154ql_OsoiupSUCRcKVvZj2JHL2KILsq_sh_l7g2dqAN8D7jYfJ58MkqlknBMa2-zi5I0-1JUOwztVNml_zGrp27UbEU60RqV3GHjoqwI6m01U7K0a8Q_SQAKYGqgepbAYOA-P4_TLl5KC4-WWBZu_rVfwgSENwWNEhw8oQ',
-      dp: 'E1Y-SN4bQqX7kP-bNgZ_gEv-pixJ5F_EGocHKfS56jtzRqQdTurrk4jIVpI-ZITA88lWAHxjD-OaoJUh9Jupd_lwD5Si80PyVxOMI2xaGQiF0lbKJfD38Sh8frRpgelZVaK_gm834B6SLfxKdNsP04DsJqGKktODF_fZeaGFPH0',
-      dq: 'F90JPxevQYOlAgEH0TUt1-3_hyxY6cfPRU2HQBaahyWrtCWpaOzenKZnvGFZdg-BuLVKjCchq3G_70OLE-XDP_ol0UTJmDTT-WyuJQdEMpt_WFF9yJGoeIu8yohfeLatU-67ukjghJ0s9CBzNE_LrGEV6Cup3FXywpSYZAV3iqc',
-      e: 'AQAB',
-      kid: 'keystore-CHANGE-ME',
-      kty: 'RSA',
-      n: 'xwQ72P9z9OYshiQ-ntDYaPnnfwG6u9JAdLMZ5o0dmjlcyrvwQRdoFIKPnO65Q8mh6F_LDSxjxa2Yzo_wdjhbPZLjfUJXgCzm54cClXzT5twzo7lzoAfaJlkTsoZc2HFWqmcri0BuzmTFLZx2Q7wYBm0pXHmQKF0V-C1O6NWfd4mfBhbM-I1tHYSpAMgarSm22WDMDx-WWI7TEzy2QhaBVaENW9BKaKkJklocAZCxk18WhR0fckIGiWiSM5FcU1PY2jfGsTmX505Ub7P5Dz75Ygqrutd5tFrcqyPAtPTFDk8X1InxkkUwpP3nFU5o50DGhwQolGYKPGtQ-ZtmbOfcWQ',
-      p: '5wC6nY6Ev5FqcLPCqn9fC6R9KUuBej6NaAVOKW7GXiOJAq2WrileGKfMc9kIny20zW3uWkRLm-O-3Yzze1zFpxmqvsvCxZ5ERVZ6leiNXSu3tez71ZZwp0O9gys4knjrI-9w46l_vFuRtjL6XEeFfHEZFaNJpz-lcnb3w0okrbM',
-      q: '3I1qeEDslZFB8iNfpKAdWtz_Wzm6-jayT_V6aIvhvMj5mnU-Xpj75zLPQSGa9wunMlOoZW9w1wDO1FVuDhwzeOJaTm-Ds0MezeC4U6nVGyyDHb4CUA3ml2tzt4yLrqGYMT7XbADSvuWYADHw79OFjEi4T3s3tJymhaBvy1ulv8M',
-      qi: 'wSbXte9PcPtr788e713KHQ4waE26CzoXx-JNOgN0iqJMN6C4_XJEX-cSvCZDf4rh7xpXN6SGLVd5ibIyDJi7bbi5EQ5AXjazPbLBjRthcGXsIuZ3AtQyR0CEWNSdM7EyM5TRdyZQ9kftfz9nI03guW3iKKASETqX2vh0Z8XRjyU',
-      use: 'sig'
-    }
-  ]
-}
-```
 <details>
   <summary>(Click to expand) Generating keys
 </summary>
@@ -769,7 +746,7 @@ When doing that be sure to remove the client provided headers of the same name o
 
 ### features.claimsParameter
 
-[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.5) - Requesting Claims using the "claims" Request Parameter  
+[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter) - Requesting Claims using the "claims" Request Parameter  
 
 Enables the use and validations of `claims` parameter as described in the specification.   
   
@@ -813,7 +790,7 @@ _**default value**_:
 
 [draft-ietf-oauth-device-flow-15](https://tools.ietf.org/html/draft-ietf-oauth-device-flow-15) - OAuth 2.0 Device Authorization Grant  
 
-Enables Device Authorization Grant  
+Enables Device Authorization Grant (Device Flow)  
 
 
 _**default value**_:
@@ -1102,6 +1079,20 @@ _**default value**_:
 }
 ```
 
+### features.jwtUserinfo
+
+[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo) - JWT UserInfo Endpoint Responses  
+
+Enables the userinfo to optionally return signed and/or encrypted JWTs, also enables the relevant client metadata for setting up signing and/or encryption  
+
+
+_**default value**_:
+```js
+{
+  enabled: true
+}
+```
+
 ### features.registration
 
 [Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html)  
@@ -1277,7 +1268,7 @@ helper generating random client secrets during dynamic client registration
 _**default value**_:
 ```js
 secretFactory() {
-  return base64url(crypto.randomBytes(64)); // 512 base64url random bits
+  return base64url.encodeBuffer(crypto.randomBytes(64)); // 512 base64url random bits
 }
 ```
 
@@ -1339,7 +1330,7 @@ false
 
 ### features.request
 
-[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.6.1) - Passing a Request Object by Value  
+[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#RequestObject) - Passing a Request Object by Value  
 
 Enables the use and validations of `request` parameter  
 
@@ -1353,7 +1344,7 @@ _**default value**_:
 
 ### features.requestUri
 
-[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.6.2) - Passing a Request Object by Reference  
+[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#RequestUriParameter) - Passing a Request Object by Reference  
 
 Enables the use and validations of `request_uri` parameter  
 
@@ -1386,7 +1377,7 @@ true
 
 [draft-ietf-oauth-resource-indicators-02](https://tools.ietf.org/html/draft-ietf-oauth-resource-indicators-02) - Resource Indicators for OAuth 2.0  
 
-Enables the use of `resource` parameter for the authorization and token endpoints. In order for the feature to be any useful you must also use the `audiences` helper function to validate the resource(s) and transform it to jwt's token audience.   
+Enables the use of `resource` parameter for the authorization and token endpoints. In order for the feature to be any useful you must also use the `audiences` helper function to validate the resource(s) and transform it to the token audience.   
   
 
 
@@ -1501,6 +1492,20 @@ false
 ```
 
 </details>
+
+### features.userinfo
+
+[Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo) - UserInfo Endpoint  
+
+Enables the userinfo endpoint.  
+
+
+_**default value**_:
+```js
+{
+  enabled: true
+}
+```
 
 ### features.webMessageResponseMode
 
@@ -1638,7 +1643,7 @@ _**default value**_:
 
 ID Token only contains End-User claims when the requested `response_type` is `id_token`  
 
-[Core 1.0 - 5.4. Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.4) defines that claims requested using the `scope` parameter are only returned from the UserInfo Endpoint unless the `response_type` is `id_token`. This is the default oidc-provider behaviour, you can turn this behaviour off and return End-User claims with all ID Tokens by providing this configuration as `false`.   
+[Core 1.0 - Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) defines that claims requested using the `scope` parameter are only returned from the UserInfo Endpoint unless the `response_type` is `id_token`. This is the default oidc-provider behaviour, you can turn this behaviour off and return End-User claims with all ID Tokens by providing this configuration as `false`.   
   
 
 
@@ -1768,6 +1773,34 @@ async expiresWithSession(ctx, token) {
 }
 ```
 
+### extraAccessTokenClaims
+
+helper function used by the OP to get additional access token claims when it is being issued. These claims will be available in your storage under property `extra`, returned by introspection as top level claims and pushed into `jwt` and `paseto` formatted tokens as top level claims as well. Returned claims may not overwrite other top level claims.   
+  
+
+
+_**default value**_:
+```js
+async extraAccessTokenClaims(ctx, token) {
+  return undefined;
+}
+```
+<details>
+  <summary>(Click to expand) To push additional claims to an Access Token
+</summary>
+  <br>
+
+```js
+{
+  extraAccessTokenClaims(ctx, token) {
+    return {
+      'urn:oidc-provider:example:foo': 'bar',
+    };
+  }
+}
+```
+</details>
+
 ### extraClientMetadata
 
 Allows for custom client metadata to be defined, validated, manipulated as well as for existing property validations to be extended  
@@ -1855,10 +1888,11 @@ _**default value**_:
 
 ### formats
 
-This option allows to configure the token storage and value formats. The different values change how a client-facing token value is generated as well as what properties get sent to the adapter for storage.
+This option allows to configure the token serialization format. The different values change how a client-facing token value is generated as well as what properties get sent to the adapter for storage.
  - `opaque` (default) formatted tokens store every property as a root property in your adapter
- - `jwt` formatted tokens are issued as JWTs and stored the same as `opaque` only with additional property `jwt`. The signing algorithm for these tokens uses the client's `id_token_signed_response_alg` value and falls back to `RS256` for tokens with no relation to a client or when the client's alg is `none`
- - the value may also be a function dynamically determining the format (returning either `jwt` or `opaque` depending on the token itself)   
+ - `jwt` formatted tokens are issued as JWTs and stored the same as `opaque` only with additional property `jwt`. The signing algorithm for these tokens uses the client's `id_token_signed_response_alg` value and falls back to `RS256` for tokens with no relation to a client, when the client's alg is `none` or `HS***`
+ - `paseto` formatted tokens are issued as v2.public PASETOs and stored the same as `opaque` only with additional property `paseto`. The server must have an `OKP Ed25519` key available to sign with else it will throw a server error. PASETOs are also allowed to only have a single audience, if the token's "aud" resolves with more than one the server will throw a server error.
+ - the value may also be a function dynamically determining the format (returning either `jwt`, `paseto` or `opaque` depending on the token itself)   
   
 
 
@@ -1866,8 +1900,7 @@ _**default value**_:
 ```js
 {
   AccessToken: undefined,
-  ClientCredentials: undefined,
-  extraJwtAccessTokenClaims: [AsyncFunction: extraJwtAccessTokenClaims]
+  ClientCredentials: undefined
 }
 ```
 <details>
@@ -1880,6 +1913,18 @@ Configure `formats`:
 
 ```js
 { AccessToken: 'jwt' }
+```
+</details>
+<details>
+  <summary>(Click to expand) To enable PASETO v2.public Access Tokens</summary>
+  <br>
+
+
+Configure `formats`:
+  
+
+```js
+{ AccessToken: 'paseto' }
 ```
 </details>
 <details>
@@ -1897,36 +1942,6 @@ Configure `formats`:
       return 'jwt';
     }
     return 'opaque';
-  }
-}
-```
-</details>
-
-### formats.extraJwtAccessTokenClaims
-
-helper function used by the OP to get additional JWT formatted token claims when it is being created  
-
-
-_**default value**_:
-```js
-async extraJwtAccessTokenClaims(ctx, token) {
-  return undefined;
-}
-```
-<details>
-  <summary>(Click to expand) To push additional claims to a JWT format Access Token
-</summary>
-  <br>
-
-```js
-{
-  formats: {
-    AccessToken: 'jwt',
-    async extraJwtAccessTokenClaims(ctx, token) {
-      return {
-        preferred_username: 'johnny',
-      };
-    }
   }
 }
 ```
@@ -1967,21 +1982,15 @@ To change all request's timeout configure the httpOptions as a function like so:
 ```
 </details>
 
-### interactionUrl
-
-Helper used by the OP to determine where to redirect User-Agent for necessary interaction, can return both absolute and relative urls  
-
-
-_**default value**_:
-```js
-async interactionUrl(ctx, interaction) {
-  return `/interaction/${ctx.oidc.uid}`;
-}
-```
-
 ### interactions
 
-structure of Prompts and their checks formed by Prompt and Check class instances. The default you can modify and the classes are available under `Provider.interaction`.   
+Holds the configuration for interaction policy and url to send end-users to when the policy decides to require interaction.   
+  
+
+
+### interactions.policy
+
+structure of Prompts and their checks formed by Prompt and Check class instances. The default you can get a fresh instance for and the classes are available under `Provider.interactionPolicy`.   
   
 
 
@@ -2044,7 +2053,7 @@ _**default value**_:
             return true;
           }
 
-          if (oidc.session.past(oidc.params.max_age)) {
+          if (oidc.session.past(oidc.params.max_age) && (!ctx.oidc.result || !ctx.oidc.result.login)) {
             return true;
           }
 
@@ -2276,20 +2285,68 @@ _**default value**_:
 
 ```
 <details>
-  <summary>(Click to expand) configuring prompts
+  <summary>(Click to expand) default interaction policy description</summary>
+  <br>
+
+
+The default interaction policy consists of two available prompts, login and consent <br/><br/>
+ - `login` does the following checks:
+ - no_session - checks that there's an established session, a authenticated end-user
+ - max_age - processes the max_age parameter (when the session's auth_time is too old it requires login)
+ - id_token_hint - processes the id_token_hint parameter (when the end-user sub differs it requires login)
+ - claims_id_token_sub_value - processes the claims parameter `sub` (when the `claims` parameter requested sub differs it requires login)
+ - essential_acrs - processes the claims parameter `acr` (when the current acr is not amongst the `claims` parameter essential `acr.values` it requires login)
+ - essential_acr - processes the claims parameter `acr` (when the current acr is not equal to the `claims` parameter essential `acr.value` it requires login) <br/><br/>
+ - `consent` does the following checks:
+ - client_not_authorized - every client needs to go through a consent once per end-user session
+ - native_client_prompt - native clients always require re-consent
+ - scopes_missing - when requested scope includes scope values previously not requested it requests consent
+ - claims_missing - when requested claims parameter includes claims previously not requested it requests consent <br/><br/> These checks are the best practice for various privacy and security reasons.  
+
+
+</details>
+<details>
+  <summary>(Click to expand) disabling default checks</summary>
+  <br>
+
+
+You may be required to skip (silently accept) some of the consent checks, while it is discouraged there are valid reasons to do that, for instance in some first-party scenarios or going with pre-existing, previously granted, consents. Definitely do not just remove the checks, remove and add ones that do the same operation with the exception of those scenarios you want to skip and in those you'll have to call some of the methods ran by the `returnTo` / `resume` flow by default to ensure smooth operation.
+ - `ctx.oidc.session.ensureClientContainer(clientId<string>)` ensures the client namespace in the session is set up
+ - `ctx.oidc.session.promptedScopesFor(clientId<string>, scopes<Set|Array>)` - the scopes that were already prompted before hand
+ - `ctx.oidc.session.promptedClaimsFor(clientId<string>, claims<Set|Array>)`- the claims that were already prompted before hand
+ - `ctx.oidc.session.rejectedScopesFor(clientId<string>, scopes<Set|Array>)` - the scopes that were already prompted before hand but were rejected
+ - `ctx.oidc.session.rejectedClaimsFor(clientId<string>, claims<Set|Array>)` - the claims that were already prompted before hand but were rejected  
+
+
+</details>
+<details>
+  <summary>(Click to expand) modifying the default interaction policy
 </summary>
   <br>
 
 ```js
-const { interaction: { Prompt, Check, DEFAULT } } = require('oidc-provider');
-// DEFAULT.get(name) => returns a Prompt instance by its name
-// DEFAULT.remove(name) => removes a Prompt instance by its name
-// DEFAULT.add(prompt, index) => adds a Prompt instance to a specific index, default is to last index
+const { interactionPolicy: { Prompt, Check, base } } = require('oidc-provider');
+const basePolicy = base()
+// basePolicy.get(name) => returns a Prompt instance by its name
+// basePolicy.remove(name) => removes a Prompt instance by its name
+// basePolicy.add(prompt, index) => adds a Prompt instance to a specific index, default is add the prompt as the last one
 // prompt.checks.get(reason) => returns a Check instance by its reason
 // prompt.checks.remove(reason) => removes a Check instance by its reason
-// prompt.checks.add(check, index) => adds a Check instance to a specific index, default is to last index
+// prompt.checks.add(check, index) => adds a Check instance to a specific index, default is add the check as the last one
 ```
 </details>
+
+### interactions.url
+
+Helper used by the OP to determine where to redirect User-Agent for necessary interaction, can return both absolute and relative urls.  
+
+
+_**default value**_:
+```js
+async url(ctx, interaction) {
+  return `/interaction/${ctx.oidc.uid}`;
+}
+```
 
 ### introspectionEndpointAuthMethods
 
@@ -2367,7 +2424,7 @@ async logoutSource(ctx, form) {
 
 ### pairwiseIdentifier
 
-Function used by the OP when resolving pairwise ID Token and Userinfo sub claim values. See [Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.8.1)  
+Function used by the OP when resolving pairwise ID Token and Userinfo sub claim values. See [Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html#PairwiseAlg)  
 
 _**recommendation**_: Since this might be called several times in one request with the same arguments consider using memoization or otherwise caching the result based on account and client ids.  
 
@@ -2450,18 +2507,15 @@ async renderError(ctx, out, error) {
 
 ### responseTypes
 
-Array of response_type values that OP supports   
+Array of response_type values that OP supports. The default omits all response types that result in access tokens being issued by the authorization endpoint directly as per [OAuth 2.0 Security Best Current Practice](https://tools.ietf.org/html/draft-ietf-oauth-security-topics-12#section-3.1.2) You can still enable them if you need to.   
   
 
 
 _**default value**_:
 ```js
 [
-  'code id_token token',
   'code id_token',
-  'code token',
   'code',
-  'id_token token',
   'id_token',
   'none'
 ]
@@ -2540,12 +2594,12 @@ _**default value**_:
 ```js
 {
   authorization: '/auth',
-  certificates: '/certs',
   check_session: '/session/check',
   code_verification: '/device',
   device_authorization: '/device/auth',
   end_session: '/session/end',
   introspection: '/token/introspection',
+  jwks: '/jwks',
   registration: '/reg',
   revocation: '/token/revocation',
   token: '/token',
@@ -2748,12 +2802,12 @@ _**default value**_:
   'RSA-OAEP', 'RSA1_5',
   // asymmetric ECDH-ES based
   'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW',
-  // symmetric AES
-  'A128KW', 'A192KW', 'A256KW',
-  // symmetric AES GCM based
-  'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
+  // symmetric AES key wrapping
+  'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
   // symmetric PBES2 + AES
   'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', 'PBES2-HS512+A256KW',
+  // direct encryption
+  'dir',
 ]
 ```
 </details>
@@ -2845,12 +2899,12 @@ _**default value**_:
   'RSA-OAEP', 'RSA1_5',
   // asymmetric ECDH-ES based
   'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW',
-  // symmetric AES
-  'A128KW', 'A192KW', 'A256KW',
-  // symmetric AES GCM based
-  'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
+  // symmetric AES key wrapping
+  'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
   // symmetric PBES2 + AES
   'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', 'PBES2-HS512+A256KW',
+  // direct encryption
+  'dir',
 ]
 ```
 </details>
@@ -2943,12 +2997,12 @@ _**default value**_:
   'RSA-OAEP', 'RSA1_5',
   // asymmetric ECDH-ES based
   'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW',
-  // symmetric AES
-  'A128KW', 'A192KW', 'A256KW',
-  // symmetric AES GCM based
-  'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
+  // symmetric AES key wrapping
+  'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
   // symmetric PBES2 + AES
   'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', 'PBES2-HS512+A256KW',
+  // direct encryption
+  'dir',
 ]
 ```
 </details>
@@ -3073,12 +3127,12 @@ _**default value**_:
   'RSA-OAEP', 'RSA1_5',
   // asymmetric ECDH-ES based
   'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW',
-  // symmetric AES
-  'A128KW', 'A192KW', 'A256KW',
-  // symmetric AES GCM based
-  'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
+  // symmetric AES key wrapping
+  'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
   // symmetric PBES2 + AES
   'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', 'PBES2-HS512+A256KW',
+  // direct encryption
+  'dir',
 ]
 ```
 </details>
@@ -3235,12 +3289,12 @@ _**default value**_:
   'RSA-OAEP', 'RSA1_5',
   // asymmetric ECDH-ES based
   'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW',
-  // symmetric AES
-  'A128KW', 'A192KW', 'A256KW',
-  // symmetric AES GCM based
-  'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
+  // symmetric AES key wrapping
+  'A128KW', 'A192KW', 'A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW',
   // symmetric PBES2 + AES
   'PBES2-HS256+A128KW', 'PBES2-HS384+A192KW', 'PBES2-HS512+A256KW',
+  // direct encryption
+  'dir',
 ]
 ```
 </details>

@@ -406,16 +406,23 @@ describe('Client metadata validation', () => {
     mustBeArray(this.title);
     const responseTypes = ['code id_token token', 'code id_token', 'code token', 'code', 'id_token token', 'id_token', 'none'];
     responseTypes.forEach((value) => {
+      const grants = [];
+      if (value.includes('token')) {
+        grants.push('implicit');
+      }
+      if (value.includes('code')) {
+        grants.push('authorization_code');
+      }
       allows(this.title, [value], {
-        grant_types: ['implicit', 'authorization_code'],
-      });
+        grant_types: grants,
+      }, { responseTypes });
     });
     allows(this.title, responseTypes, {
       grant_types: ['implicit', 'authorization_code'],
-    });
+    }, { responseTypes });
     allows(this.title, ['token id_token'], { // mixed up order
       grant_types: ['implicit'],
-    }, undefined, (client) => {
+    }, { responseTypes }, (client) => {
       expect(client.metadata().response_types).to.eql(['id_token token']);
     });
 
@@ -595,6 +602,7 @@ describe('Client metadata validation', () => {
         expect(err.message).to.equal('invalid_client_metadata');
         expect(err.error_description).to.equal('id_token_encrypted_response_alg is mandatory property when id_token_encrypted_response_enc is provided');
       }));
+      allows(this.title, 'dir', undefined, configuration);
       [
         'RSA-OAEP', 'RSA1_5', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW',
         'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'A128KW', 'A192KW', 'A256KW',
@@ -620,23 +628,26 @@ describe('Client metadata validation', () => {
     context('id_token_encrypted_response_enc', function () {
       defaultsTo(this.title, undefined);
       defaultsTo(this.title, 'A128CBC-HS256', {
-        id_token_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       mustBeString(this.title, undefined, {
-        id_token_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       [
         'A128CBC-HS256', 'A128GCM', 'A192CBC-HS384', 'A192GCM', 'A256CBC-HS512', 'A256GCM',
       ].forEach((value) => {
         allows(this.title, value, {
-          id_token_encrypted_response_alg: 'RSA1_5',
+          [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
           jwks: { keys: [sigKey] },
+        }, configuration);
+        allows(this.title, value, {
+          [this.title.replace(/(enc$)/, 'alg')]: 'dir',
         }, configuration);
       });
       rejects(this.title, 'not-an-enc', undefined, {
-        id_token_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
     });
@@ -653,6 +664,7 @@ describe('Client metadata validation', () => {
         expect(err.message).to.equal('invalid_client_metadata');
         expect(err.error_description).to.equal('userinfo_encrypted_response_alg is mandatory property when userinfo_encrypted_response_enc is provided');
       }));
+      allows(this.title, 'dir', undefined, configuration);
       [
         'RSA-OAEP', 'RSA1_5', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW',
         'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'A128KW', 'A192KW', 'A256KW',
@@ -679,23 +691,26 @@ describe('Client metadata validation', () => {
       defaultsTo(this.title, undefined);
       defaultsTo(this.title, undefined, undefined, configuration);
       defaultsTo(this.title, 'A128CBC-HS256', {
-        userinfo_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       mustBeString(this.title, undefined, {
-        userinfo_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       [
         'A128CBC-HS256', 'A128GCM', 'A192CBC-HS384', 'A192GCM', 'A256CBC-HS512', 'A256GCM',
       ].forEach((value) => {
         allows(this.title, value, {
-          userinfo_encrypted_response_alg: 'RSA1_5',
+          [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
           jwks: { keys: [sigKey] },
+        }, configuration);
+        allows(this.title, value, {
+          [this.title.replace(/(enc$)/, 'alg')]: 'dir',
         }, configuration);
       });
       rejects(this.title, 'not-an-enc', undefined, {
-        userinfo_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
     });
@@ -712,6 +727,7 @@ describe('Client metadata validation', () => {
         expect(err.message).to.equal('invalid_client_metadata');
         expect(err.error_description).to.equal('introspection_encrypted_response_alg is mandatory property when introspection_encrypted_response_enc is provided');
       }));
+      allows(this.title, 'dir', undefined, configuration);
       [
         'RSA-OAEP', 'RSA1_5', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW',
         'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'A128KW', 'A192KW', 'A256KW',
@@ -738,23 +754,26 @@ describe('Client metadata validation', () => {
       defaultsTo(this.title, undefined);
       defaultsTo(this.title, undefined, undefined, configuration);
       defaultsTo(this.title, 'A128CBC-HS256', {
-        introspection_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       mustBeString(this.title, undefined, {
-        introspection_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       [
         'A128CBC-HS256', 'A128GCM', 'A192CBC-HS384', 'A192GCM', 'A256CBC-HS512', 'A256GCM',
       ].forEach((value) => {
         allows(this.title, value, {
-          introspection_encrypted_response_alg: 'RSA1_5',
+          [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
           jwks: { keys: [sigKey] },
+        }, configuration);
+        allows(this.title, value, {
+          [this.title.replace(/(enc$)/, 'alg')]: 'dir',
         }, configuration);
       });
       rejects(this.title, 'not-an-enc', undefined, {
-        introspection_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
     });
@@ -771,6 +790,7 @@ describe('Client metadata validation', () => {
         expect(err.message).to.equal('invalid_client_metadata');
         expect(err.error_description).to.equal('authorization_encrypted_response_alg is mandatory property when authorization_encrypted_response_enc is provided');
       }));
+      allows(this.title, 'dir', undefined, configuration);
       [
         'RSA-OAEP', 'RSA1_5', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW',
         'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'A128KW', 'A192KW', 'A256KW',
@@ -797,23 +817,26 @@ describe('Client metadata validation', () => {
       defaultsTo(this.title, undefined);
       defaultsTo(this.title, undefined, undefined, configuration);
       defaultsTo(this.title, 'A128CBC-HS256', {
-        authorization_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       mustBeString(this.title, undefined, {
-        authorization_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
       [
         'A128CBC-HS256', 'A128GCM', 'A192CBC-HS384', 'A192GCM', 'A256CBC-HS512', 'A256GCM',
       ].forEach((value) => {
         allows(this.title, value, {
-          authorization_encrypted_response_alg: 'RSA1_5',
+          [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
           jwks: { keys: [sigKey] },
+        }, configuration);
+        allows(this.title, value, {
+          [this.title.replace(/(enc$)/, 'alg')]: 'dir',
         }, configuration);
       });
       rejects(this.title, 'not-an-enc', undefined, {
-        authorization_encrypted_response_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
         jwks: { keys: [sigKey] },
       }, configuration);
     });
@@ -836,6 +859,7 @@ describe('Client metadata validation', () => {
         expect(err.message).to.equal('invalid_client_metadata');
         expect(err.error_description).to.equal('request_object_encryption_alg is mandatory property when request_object_encryption_enc is provided');
       }));
+      allows(this.title, 'dir', undefined, configuration);
       [
         'RSA-OAEP', 'RSA1_5', 'ECDH-ES', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW',
         'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW', 'A128KW', 'A192KW', 'A256KW',
@@ -860,20 +884,23 @@ describe('Client metadata validation', () => {
       defaultsTo(this.title, undefined);
       defaultsTo(this.title, undefined, undefined, configuration);
       defaultsTo(this.title, 'A128CBC-HS256', {
-        request_object_encryption_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
       }, configuration);
       mustBeString(this.title, undefined, {
-        request_object_encryption_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
       }, configuration);
       [
         'A128CBC-HS256', 'A128GCM', 'A192CBC-HS384', 'A192GCM', 'A256CBC-HS512', 'A256GCM',
       ].forEach((value) => {
         allows(this.title, value, {
-          request_object_encryption_alg: 'RSA1_5',
+          [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
+        }, configuration);
+        allows(this.title, value, {
+          [this.title.replace(/(enc$)/, 'alg')]: 'dir',
         }, configuration);
       });
       rejects(this.title, 'not-an-enc', undefined, {
-        request_object_encryption_alg: 'RSA1_5',
+        [this.title.replace(/(enc$)/, 'alg')]: 'RSA1_5',
       }, configuration);
     });
   });
@@ -888,6 +915,9 @@ describe('Client metadata validation', () => {
       },
     };
 
+    [false, Boolean, 'foo', 123, null, { kty: null }, { kty: '' }].forEach((value) => {
+      rejects(this.title, { keys: [value] }, 'jwks keys member index 0 is not a valid JWK');
+    });
     rejects(this.title, 'string', 'jwks must be a JWK Set');
     rejects(this.title, {}, 'jwks must be a JWK Set');
     rejects(this.title, 1, 'jwks must be a JWK Set');
@@ -896,7 +926,8 @@ describe('Client metadata validation', () => {
     rejects(this.title, { keys: [privateKey] }, 'jwks must not contain private or symmetric keys (found in keys member index 0)');
     rejects(this.title, { keys: [{ k: '6vl9Rlk88HO8onFHq0ZvTtga68vkUr-bRZ2Hvxu-rAw', kty: 'oct' }] }, 'jwks must not contain private or symmetric keys (found in keys member index 0)');
     rejects(this.title, { keys: [{ kty: 'oct', kid: 'jf1nb1YotqxK9viWsXMsngnTCmO2r3w_moVIPtaf8wU' }] }, 'jwks must not contain private or symmetric keys (found in keys member index 0)');
-    allows(this.title, { keys: [] }, 'jwks.keys must not be empty');
+    allows(this.title, { keys: [{ kty: 'unrecognized' }] });
+    allows(this.title, { keys: [] });
     ['introspection', 'revocation', 'token'].forEach((endpoint) => {
       rejects(this.title, undefined, 'jwks or jwks_uri is mandatory for this client', {
         [`${endpoint}_endpoint_auth_method`]: 'private_key_jwt',

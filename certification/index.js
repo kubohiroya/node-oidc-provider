@@ -5,7 +5,6 @@ const path = require('path');
 const { set } = require('lodash');
 const render = require('koa-ejs');
 const helmet = require('koa-helmet');
-const openid = require('openid-client'); // eslint-disable-line import/no-unresolved
 
 const Provider = require('../lib'); // require('oidc-provider');
 const Account = require('../example/support/account');
@@ -13,7 +12,7 @@ const routes = require('../example/routes/koa');
 
 const configuration = require('./configuration');
 
-const { PORT = 3000, ISSUER = `http://localhost:${PORT}` } = process.env;
+const { GOOGLE_CLIENT_ID, PORT = 3000, ISSUER = `http://localhost:${PORT}` } = process.env;
 configuration.findAccount = Account.findAccount;
 
 let server;
@@ -27,14 +26,17 @@ let server;
 
   const provider = new Provider(ISSUER, { adapter, ...configuration });
 
-  const google = await openid.Issuer.discover('https://accounts.google.com/.well-known/openid-configuration');
-  const googleClient = new google.Client({
-    client_id: '949818858744-le83ut7jjknooi7dk24oec6iq8n84pl8.apps.googleusercontent.com',
-    response_types: ['id_token'],
-    redirect_uris: [`${ISSUER}/interaction/callback/google`],
-    grant_types: ['implicit'],
-  });
-  provider.app.context.google = googleClient;
+  if (GOOGLE_CLIENT_ID) {
+    const openid = require('openid-client'); // eslint-disable-line global-require, import/no-unresolved
+    const google = await openid.Issuer.discover('https://accounts.google.com/.well-known/openid-configuration');
+    const googleClient = new google.Client({
+      client_id: GOOGLE_CLIENT_ID,
+      response_types: ['id_token'],
+      redirect_uris: [`${ISSUER}/interaction/callback/google`],
+      grant_types: ['implicit'],
+    });
+    provider.app.context.google = googleClient;
+  }
 
   // don't wanna re-bundle the interactions so just insert the login amr and acr as static whenever
   // login is submitted, usually you would submit them from your interaction
@@ -72,6 +74,8 @@ let server;
       if (ctx.secure) {
         const orig = ctx.get;
 
+        // this instance uses caddy as a webserver, caddy is escaping the cert values when passing
+        // them as headers
         ctx.get = function get(header) {
           const value = orig.call(ctx, header);
 
@@ -87,6 +91,10 @@ let server;
         if (ctx.oidc && ctx.oidc.route === 'discovery') {
           ctx.body.mtls_endpoint_aliases = {};
           ['token', 'introspection', 'revocation', 'userinfo', 'device_authorization'].forEach((endpoint) => {
+            if (!ctx.body[`${endpoint}_endpoint`]) {
+              return;
+            }
+
             ctx.body.mtls_endpoint_aliases[`${endpoint}_endpoint`] = ctx.body[`${endpoint}_endpoint`].replace('https://', 'https://mtls.');
             if (ctx.body[`${endpoint}_endpoint_auth_methods_supported`]) {
               const methods = new Set(ctx.body[`${endpoint}_endpoint_auth_methods_supported`]);

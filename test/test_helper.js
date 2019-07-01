@@ -6,7 +6,6 @@ const { parse } = require('url');
 const path = require('path');
 const querystring = require('querystring');
 
-const _ = require('lodash');
 const sinon = require('sinon');
 const { agent: supertest } = require('supertest');
 const { expect } = require('chai');
@@ -319,8 +318,11 @@ module.exports = function testHelper(dir, { config: base = path.basename(dir), m
 
   function getTokenJti(token) {
     const jwt = () => JSON.parse(base64url.decode(token.split('.')[1])).jti;
+    const paseto = () => JSON.parse(base64url.toBuffer(token.split('.')[2]).slice(0, -64)).jti;
     const opaque = () => token;
     switch (FORMAT) {
+      case 'paseto':
+        return paseto();
       case 'jwt':
         return jwt();
       case 'opaque':
@@ -329,12 +331,16 @@ module.exports = function testHelper(dir, { config: base = path.basename(dir), m
         if (typeof FORMAT === 'function') {
           try {
             return jwt();
-          } catch (err) {
-            return opaque();
-          }
-        } else {
-          throw new Error(`invalid format specified (${FORMAT})`);
+          } catch (err) {}
+
+          try {
+            return paseto();
+          } catch (err) {}
+
+          return opaque();
         }
+
+        throw new Error(`invalid format specified (${FORMAT})`);
     }
   }
 
@@ -400,9 +406,9 @@ module.exports.passInteractionChecks = (...reasons) => {
 
   context('', () => {
     before(function () {
-      const { interactions } = i(this.provider).configuration();
+      const { policy } = i(this.provider).configuration('interactions');
 
-      const iChecks = _.flattenDeep([interactions.map(i => i.checks)]);
+      const iChecks = [policy.map(i => i.checks)].flat(Infinity);
 
       iChecks
         .filter(check => reasons.includes(check.reason))

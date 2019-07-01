@@ -230,7 +230,7 @@ const props = [
         case 'undefined':
         case 'object': {
           let output;
-          if (block === 'interactions') {
+          if (block === 'interactions.policy') {
             output = readFileSync('./docs/checks.txt');
           }
           output = output || inspect(value, { compact: false, sorted: true });
@@ -256,6 +256,9 @@ const props = [
               return undefined;
             }
             if (line.includes('/* eslint-enable')) {
+              return undefined;
+            }
+            if (line.includes('/* istanbul ignore')) {
               return undefined;
             }
             line = line.replace(/ \/\/ TODO.+/, '');

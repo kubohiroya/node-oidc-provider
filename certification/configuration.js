@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 
 const pkg = require('../package.json');
+const whitelistedJWA = JSON.parse(JSON.stringify(require('../lib/consts/jwa')));
+const { interactionPolicy: { Prompt, base: policy } } = require('../lib');
 
 const timeout = parseInt(process.env.TIMEOUT, 10);
 const tokenEndpointAuthMethods = [
@@ -13,7 +15,20 @@ const tokenEndpointAuthMethods = [
 ];
 tokenEndpointAuthMethods.ack = 14;
 
+const interactions = policy();
+const selectAccount = new Prompt({
+  name: 'select_account',
+  requestable: true,
+});
+interactions.add(selectAccount, 0);
+
 module.exports = {
+  interactions: {
+    policy: interactions,
+    url(ctx) {
+      return `/interaction/${ctx.oidc.uid}`;
+    },
+  },
   acrValues: ['urn:mace:incommon:iap:bronze'],
   cookies: {
     long: { signed: true, maxAge: (1 * 24 * 60 * 60) * 1000 }, // 1 day in ms
@@ -52,10 +67,10 @@ module.exports = {
     sessionManagement: { enabled: true, ack: 28 },
     webMessageResponseMode: { enabled: true, ack: 0 },
   },
+  extraAccessTokenClaims() {
+    return { 'urn:oidc-provider:example:foo': 'bar' };
+  },
   formats: {
-    extraJwtAccessTokenClaims() {
-      return { 'urn:oidc-provider:example:foo': 'bar' };
-    },
     AccessToken: 'jwt',
   },
   jwks: {
@@ -105,6 +120,7 @@ module.exports = {
       },
     ],
   },
+  responseTypes: ['code id_token token', 'code id_token', 'code token', 'code', 'id_token token', 'id_token', 'none'],
   subjectTypes: ['public', 'pairwise'],
   pairwiseIdentifier(ctx, accountId, { sectorIdentifier }) {
     return crypto.createHash('sha256')
@@ -112,9 +128,6 @@ module.exports = {
       .update(accountId)
       .update('da1c442b365b563dfc121f285a11eedee5bbff7110d55c88')
       .digest('hex');
-  },
-  interactionUrl: function interactionUrl(ctx) {
-    return `/interaction/${ctx.oidc.uid}`;
   },
   ttl: {
     AccessToken: 1 * 60 * 60,
@@ -126,38 +139,8 @@ module.exports = {
   },
   tokenEndpointAuthMethods,
   httpOptions(gotOptions) {
-    gotOptions.timeout = timeout; // eslint-disable-line no-param-reassign
+    gotOptions.timeout = timeout || gotOptions.timeout; // eslint-disable-line no-param-reassign
     return gotOptions;
   },
-  whitelistedJWA: {
-    idTokenSigningAlgValues: ['none', 'HS256', 'RS256', 'PS256', 'ES256', 'EdDSA'],
-    requestObjectSigningAlgValues: ['none', 'HS256', 'RS256', 'PS256', 'ES256', 'EdDSA'],
-    idTokenEncryptionAlgValues: [
-      'RSA1_5',
-      'A128KW',
-      'A256KW',
-      'ECDH-ES',
-      'ECDH-ES+A128KW',
-      'ECDH-ES+A256KW',
-      'RSA-OAEP',
-    ],
-    requestObjectEncryptionAlgValues: [
-      'RSA1_5',
-      'A128KW',
-      'A256KW',
-      'ECDH-ES',
-      'ECDH-ES+A128KW',
-      'ECDH-ES+A256KW',
-      'RSA-OAEP',
-    ],
-    userinfoEncryptionAlgValues: [
-      'RSA1_5',
-      'A128KW',
-      'A256KW',
-      'ECDH-ES',
-      'ECDH-ES+A128KW',
-      'ECDH-ES+A256KW',
-      'RSA-OAEP',
-    ],
-  },
+  whitelistedJWA,
 };
